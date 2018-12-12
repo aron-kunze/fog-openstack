@@ -22,7 +22,7 @@ module Fog
             token = Fog::OpenStack::Auth::Token::V3.new(auth, options)
           end
           if auth[:federated_identity]
-            sp = auth[:service_provider]
+            sp = auth[:openstack_service_provider]
             if sp && t.data["service_providers"].include? sp
               sp_url = sp
             else
