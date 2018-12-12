@@ -1,5 +1,6 @@
 require 'fog/openstack/auth/token/v2'
 require 'fog/openstack/auth/token/v3'
+require 'fog/openstack/auth/token/fed'
 require 'fog/openstack/auth/catalog/v2'
 require 'fog/openstack/auth/catalog/v3'
 
@@ -16,10 +17,21 @@ module Fog
         def self.build(auth, options)
           if auth[:openstack_identity_api_version] =~ /(v)*2(\.0)*/i ||
              auth[:openstack_tenant_id] || auth[:openstack_tenant]
-            Fog::OpenStack::Auth::Token::V2.new(auth, options)
+            token = Fog::OpenStack::Auth::Token::V2.new(auth, options)
           else
-            Fog::OpenStack::Auth::Token::V3.new(auth, options)
+            token = Fog::OpenStack::Auth::Token::V3.new(auth, options)
           end
+          if auth[:federated_identity]
+            sp = auth[:service_provider]
+            if sp && t.data["service_providers"].include? sp
+              sp_url = sp
+            else
+              sp_url = token.data["service_providers"].first
+            end
+            token = Fog::OpenStack::Auth::Token::Fed.new({ openstack_auth_url: sp_url, 
+                                                       openstack_auth_token: token.token })
+          end
+          token
         end
 
         def initialize(auth, options)
