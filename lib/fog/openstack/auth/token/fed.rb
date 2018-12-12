@@ -1,12 +1,11 @@
-require 'fog/openstack/auth/token'
+require 'fog/openstack/auth/token/v3'
 require 'fog/openstack/auth/name'
 
 module Fog
   module OpenStack
     module Auth
       module Token
-        class Fed
-          include Fog::OpenStack::Auth::Token::V3
+        class Fed < Fog::OpenStack::Auth::Token::V3
           def prefix_path(uri)
             uri
           end
