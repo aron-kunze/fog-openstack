@@ -23,7 +23,7 @@ module Fog
           end
           if auth[:openstack_service_provider]
             service_provider = token.data["token"]["service_providers"].select{ |x| 
-              x["id"] == auth["openstack_service_provider"]
+              x["id"] == auth[:openstack_service_provider]
             }.first
             if service_provider.present?
               token = Fog::OpenStack::Auth::Token::Fed.new({ openstack_auth_url: service_provider["sp_url"], 
