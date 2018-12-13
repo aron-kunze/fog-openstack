@@ -27,7 +27,7 @@ module Fog
             }.first
             if service_provider.present?
               token = Fog::OpenStack::Auth::Token::Fed.new({ openstack_auth_url: service_provider["sp_url"], 
-                                                             openstack_auth_token: token.token })
+                                                             openstack_auth_token: token.token }, options)
             end
           end
           token
