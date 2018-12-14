@@ -7,7 +7,7 @@ module Fog
       module Token
         class Fed < Fog::OpenStack::Auth::Token::V3
           def prefix_path(uri)
-            uri.path
+            ''
           end
 
           def path
