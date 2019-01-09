@@ -26,8 +26,33 @@ module Fog
               x["id"] == auth[:openstack_service_provider]
             }.first
             if service_provider.present?
-              token = Fog::OpenStack::Auth::Token::Fed.new({ openstack_auth_url: service_provider["sp_url"], 
-                                                             openstack_auth_token: token.token }, options)
+              c = token.credentials.clone
+              c["auth"]["scope"] = { service_provider: { id: auth[:openstack_service_provider]}}
+              saml_assertion = Excon.post(
+                "#{auth[:openstack_auth_url]}#{auth.fetch(:federation_url, '/v3/auth/OS-FEDERATION/saml2/ecp')}", 
+                body: Fog::JSON.encode(c)
+              )
+              auth_cookie_response = Excon.post(service_provider["sp_url"], 
+                                       body: saml_assertion.body,
+                                       headers: { "Content-Type": "application/vnd.paos+xml" }
+                                      )
+              auth_cookie = auth_cookie_response.headers["Set-Cookie"]
+              unscoped_token_response = Excon.get(service_provider["auth_url"], 
+                                         headers: {
+                                                    "Content-Type": "application/vnd.paos+xml", 
+                                                    "Cookie": auth_cookie 
+                                                  }
+                                        )
+              unscoped_token = JSON.parse(unscoped_token_response.data[:body]).dig("token", "user", "id")
+              u = URI(service_provider["sp_url"])
+
+              scoped_auth = { 
+                openstack_auth_url: "#{u.scheme}://#{u.host}:#{u.port}",
+                openstack_auth_token: unscoped_token
+              }.merge(
+                auth.slice(:openstack_project_name, :openstack_domain_id)
+              )
+              token = Fog::OpenStack::Auth::Token::V3.new(scoped_auth, options)
             end
           end
           token
