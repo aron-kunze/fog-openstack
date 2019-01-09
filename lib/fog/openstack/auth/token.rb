@@ -1,6 +1,5 @@
 require 'fog/openstack/auth/token/v2'
 require 'fog/openstack/auth/token/v3'
-require 'fog/openstack/auth/token/fed'
 require 'fog/openstack/auth/catalog/v2'
 require 'fog/openstack/auth/catalog/v3'
 
