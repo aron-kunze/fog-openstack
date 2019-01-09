@@ -26,23 +26,28 @@ module Fog
             }.first
             if service_provider.present?
               c = token.credentials.clone
+              p c
               c["auth"]["scope"] = { service_provider: { id: auth[:openstack_service_provider]}}
               saml_assertion = Excon.post(
                 "#{auth[:openstack_auth_url]}#{auth.fetch(:federation_url, '/v3/auth/OS-FEDERATION/saml2/ecp')}", 
                 body: Fog::JSON.encode(c)
               )
+              p saml_assertion
               auth_cookie_response = Excon.post(service_provider["sp_url"], 
                                        body: saml_assertion.body,
                                        headers: { "Content-Type": "application/vnd.paos+xml" }
                                       )
               auth_cookie = auth_cookie_response.headers["Set-Cookie"]
+              p auth_cookie
               unscoped_token_response = Excon.get(service_provider["auth_url"], 
                                          headers: {
                                                     "Content-Type": "application/vnd.paos+xml", 
                                                     "Cookie": auth_cookie 
                                                   }
                                         )
+              p unscoped_token_response
               unscoped_token = JSON.decode(unscoped_token_response.data[:body]).dig("token", "user", "id")
+              p unscoped_token
               u = URI(service_provider["sp_url"])
 
               scoped_auth = { 
