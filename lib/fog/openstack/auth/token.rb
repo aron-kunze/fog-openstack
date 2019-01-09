@@ -42,7 +42,7 @@ module Fog
                                                     "Cookie": auth_cookie 
                                                   }
                                         )
-              unscoped_token = JSON.parse(unscoped_token_response.data[:body]).dig("token", "user", "id")
+              unscoped_token = JSON.decode(unscoped_token_response.data[:body]).dig("token", "user", "id")
               u = URI(service_provider["sp_url"])
 
               scoped_auth = { 
