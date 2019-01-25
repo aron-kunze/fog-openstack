@@ -30,12 +30,18 @@ module Fog
               c["auth"]["scope"] = { service_provider: { id: auth[:openstack_service_provider]}}
               saml_assertion = Excon.post(
                 "#{auth[:openstack_auth_url]}#{auth.fetch(:federation_url, '/v3/auth/OS-FEDERATION/saml2/ecp')}", 
-                body: Fog::JSON.encode(c)
+                body: Fog::JSON.encode(c),
+                idempotent: true, 
+                retry_limit: 5, 
+                retry_interval: 1
               )
               p saml_assertion
               auth_cookie_response = Excon.post(service_provider["sp_url"], 
                                        body: saml_assertion.body,
-                                       headers: { "Content-Type": "application/vnd.paos+xml" }
+                                       headers: { "Content-Type": "application/vnd.paos+xml" },
+                                       idempotent: true, 
+                                       retry_limit: 5, 
+                                       retry_interval: 1
                                       )
               auth_cookie = auth_cookie_response.headers["Set-Cookie"]
               p auth_cookie
@@ -43,7 +49,10 @@ module Fog
                                          headers: {
                                                     "Content-Type": "application/vnd.paos+xml", 
                                                     "Cookie": auth_cookie 
-                                                  }
+                                                  },
+                                         idempotent: true, 
+                                         retry_limit: 5, 
+                                         retry_interval: 1
                                         )
               p unscoped_token_response
               unscoped_token = JSON.decode(unscoped_token_response.data[:body]).dig("token", "user", "id")
