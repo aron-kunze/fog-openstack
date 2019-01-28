@@ -63,7 +63,7 @@ module Fog
                 p unscoped_token_response
                 p ""
                 if unscoped_token_response.status < 400
-                  unscoped_token = JSON.decode(unscoped_token_response.headers)["X-Subject-Token"]
+                  unscoped_token = unscoped_token_response.headers)["X-Subject-Token"]
                   break
                 end
                 retries -= 1
