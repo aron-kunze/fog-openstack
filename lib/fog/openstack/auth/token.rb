@@ -58,15 +58,21 @@ module Fog
                                            retry_limit: 5, 
                                            retry_interval: 1
                                           )
+
+                p ""
                 p unscoped_token_response
+                p ""
                 if unscoped_token_response.status < 400
                   unscoped_token = JSON.decode(unscoped_token_response.data[:body]).dig("token", "user", "id")
                   break
                 end
                 retries -= 1
               end
+              p ""
               p unscoped_token
+              p ""
               u = URI(service_provider["sp_url"])
+              p u
 
               scoped_auth = { 
                 openstack_auth_url: "#{u.scheme}://#{u.host}:#{u.port}",
@@ -75,6 +81,8 @@ module Fog
                 auth.slice(:openstack_project_name, :openstack_domain_id)
               )
               token = Fog::OpenStack::Auth::Token::V3.new(scoped_auth, options)
+              p ""
+              p "scoped_token: #{token}"
             end
           end
           token
