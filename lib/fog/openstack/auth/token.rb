@@ -45,17 +45,26 @@ module Fog
                                       )
               auth_cookie = auth_cookie_response.headers["Set-Cookie"]
               p auth_cookie
-              unscoped_token_response = Excon.get(service_provider["auth_url"], 
-                                         headers: {
-                                                    "Content-Type": "application/vnd.paos+xml", 
-                                                    "Cookie": auth_cookie 
-                                                  },
-                                         idempotent: true, 
-                                         retry_limit: 5, 
-                                         retry_interval: 1
-                                        )
-              p unscoped_token_response
-              unscoped_token = JSON.decode(unscoped_token_response.data[:body]).dig("token", "user", "id")
+
+
+              retries = 5
+              while retries > 0 do
+                unscoped_token_response = Excon.get(service_provider["auth_url"], 
+                                           headers: {
+                                                      "Content-Type": "application/vnd.paos+xml", 
+                                                      "Cookie": auth_cookie 
+                                                    },
+                                           idempotent: true, 
+                                           retry_limit: 5, 
+                                           retry_interval: 1
+                                          )
+                p unscoped_token_response
+                if unscoped_token_response.status < 400
+                  unscoped_token = JSON.decode(unscoped_token_response.data[:body]).dig("token", "user", "id")
+                  break
+                end
+                retries -= 1
+              end
               p unscoped_token
               u = URI(service_provider["sp_url"])
 
