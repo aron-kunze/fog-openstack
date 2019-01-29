@@ -24,6 +24,7 @@ module Fog
             service_provider = token.data["token"]["service_providers"].select{ |x| 
               x["id"] == auth[:openstack_service_provider]
             }.first
+            auth[:openstack_domain_id] = "default"
             if service_provider.present?
               c = token.credentials.clone
               p c
