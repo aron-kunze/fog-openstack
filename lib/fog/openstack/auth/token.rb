@@ -36,7 +36,7 @@ module Fog
           @token
         end
 
-        def get_token_with_version(auth, options)
+        def self.get_token_with_version(auth, options)
           if auth[:openstack_identity_api_version] =~ /(v)*2(\.0)*/i ||
              auth[:openstack_tenant_id] || auth[:openstack_tenant]
             Fog::OpenStack::Auth::Token::V2.new(auth, options)
@@ -45,7 +45,7 @@ module Fog
           end
         end
 
-        def get_token_with_federated_identity(auth, options)
+        def self.get_token_with_federated_identity(auth, options)
           default_auth = auth.merge({ openstack_domain_id: "default"})
           token = get_token_with_version(default_auth)
 
@@ -65,7 +65,7 @@ module Fog
           end
         end
 
-        def get_saml_assertion(auth, credentials)
+        def self.get_saml_assertion(auth, credentials)
           Excon.post(
             "#{auth[:openstack_auth_url]}#{auth.fetch(:federation_url, '/v3/auth/OS-FEDERATION/saml2/ecp')}",
             body: Fog::JSON.encode(credentials),
@@ -75,7 +75,7 @@ module Fog
           )
         end
 
-        def get_auth_cookie(service_provider, saml_assertion)
+        def self.get_auth_cookie(service_provider, saml_assertion)
           auth_cookie_response = Excon.post(
             service_provider["sp_url"],
             body: saml_assertion.body,
@@ -87,7 +87,7 @@ module Fog
           auth_cookie_response.headers["Set-Cookie"]
         end
 
-        def get_unscoped_token(service_provider, auth_cookie, retries = 5)
+        def self.get_unscoped_token(service_provider, auth_cookie, retries = 5)
           while retries > 0
             unscoped_token_response = Excon.get(
               service_provider["auth_url"],
@@ -108,7 +108,7 @@ module Fog
           unscoped_token
         end
 
-        def get_scoped_token(auth, service_provider, unscoped_token, options)
+        def self.get_scoped_token(auth, service_provider, unscoped_token, options)
           u = URI(service_provider["sp_url"])
 
           scoped_auth = {
