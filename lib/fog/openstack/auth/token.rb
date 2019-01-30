@@ -46,23 +46,24 @@ module Fog
         end
 
         def self.get_token_with_federated_identity(auth, options)
+          scoped_token = nil
           default_auth = auth.merge({ openstack_domain_id: "default"})
-          token = get_token_with_version(default_auth)
+          token = get_token_with_version(default_auth, options)
 
           service_provider = token.data["token"]["service_providers"].select { |x|
             x["id"] == auth[:openstack_service_provider]
           }.first
 
-          if service_provider.present?
+          unless service_provider.nil?
             credentials = token.credentials.clone
             credentials["auth"]["scope"] = { service_provider: { id: auth[:openstack_service_provider]}}
 
             saml_assertion = get_saml_assertion(default_auth, credentials)
             auth_cookie = get_auth_cookie(service_provider, saml_assertion)
             unscoped_token = get_unscoped_token(service_provider, auth_cookie)
-            scoped_token = get_scoped_token(auth, unscoped_token, options)
-            scoped_token
+            scoped_token = get_scoped_token(auth, service_provider, unscoped_token, options)
           end
+          scoped_token
         end
 
         def self.get_saml_assertion(auth, credentials)
@@ -117,6 +118,7 @@ module Fog
           }.merge(
             auth.slice(:openstack_project_name, :openstack_domain_id)
           )
+          scoped_auth[:openstack_domain_name] = scoped_auth.delete(:openstack_domain_id)
           get_token_with_version(scoped_auth, options)
         end
 
