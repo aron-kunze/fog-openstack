@@ -16,7 +16,7 @@ module Fog
           stack_id = stack.id
 
           request(
-            :expects => 202,
+            :expects => [202, 302],
             :path    => "stacks/#{stack_name}/#{stack_id}",
             :method  => 'PATCH',
             :body    => Fog::JSON.encode(options)
